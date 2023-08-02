@@ -1,21 +1,37 @@
-import React from 'react';
 import MetricsTable from './MetricsTable';
-import { FormattedMessage } from 'react-intl';
 import FilterLink from 'components/common/FilterLink';
+import useMessages from 'hooks/useMessages';
+import { useRouter } from 'next/router';
 
-export default function OSTable({ websiteId, ...props }) {
+export function OSTable({ websiteId, ...props }) {
+  const { formatMessage, labels } = useMessages();
+  const { basePath } = useRouter();
+
   function renderLink({ x: os }) {
-    return <FilterLink id="os" value={os} />;
+    return (
+      <FilterLink id="os" value={os}>
+        <img
+          src={`${basePath}/images/os/${
+            os?.toLowerCase().replaceAll(/[^\w]+/g, '-') || 'unknown'
+          }.png`}
+          alt={os}
+          width={16}
+          height={16}
+        />
+      </FilterLink>
+    );
   }
 
   return (
     <MetricsTable
       {...props}
-      title={<FormattedMessage id="metrics.operating-systems" defaultMessage="Operating system" />}
-      type="os"
-      metric={<FormattedMessage id="metrics.visitors" defaultMessage="Visitors" />}
-      renderLabel={renderLink}
       websiteId={websiteId}
+      title={formatMessage(labels.os)}
+      metric={formatMessage(labels.visitors)}
+      renderLabel={renderLink}
+      type="os"
     />
   );
 }
+
+export default OSTable;

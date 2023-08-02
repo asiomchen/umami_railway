@@ -1,42 +1,50 @@
-import { useCallback, useMemo } from 'react';
-import { parseISO } from 'date-fns';
-import { getDateRange } from 'lib/date';
-import { getItem, setItem } from 'next-basics';
+import { getMinimumUnit, parseDateRange } from 'lib/date';
+import { setItem } from 'next-basics';
 import { DATE_RANGE_CONFIG, DEFAULT_DATE_RANGE } from 'lib/constants';
-import useForceUpdate from './useForceUpdate';
 import useLocale from './useLocale';
-import useStore, { setDateRange } from 'store/websites';
+import websiteStore, { setWebsiteDateRange } from 'store/websites';
+import appStore, { setDateRange } from 'store/app';
+import useApi from './useApi';
 
-export default function useDateRange(websiteId) {
+export function useDateRange(websiteId) {
+  const { get } = useApi();
   const { locale } = useLocale();
-  const forceUpdate = useForceUpdate();
-  const selector = useCallback(state => state?.[websiteId]?.dateRange, [websiteId]);
-  const websiteDateRange = useStore(selector);
-  const defaultDateRange = useMemo(() => getDateRange(DEFAULT_DATE_RANGE, locale), [locale]);
+  const websiteConfig = websiteStore(state => state[websiteId]?.dateRange);
+  const defaultConfig = DEFAULT_DATE_RANGE;
+  const globalConfig = appStore(state => state.dateRange);
+  const dateRange = parseDateRange(websiteConfig || globalConfig || defaultConfig, locale);
 
-  const globalDefault = getItem(DATE_RANGE_CONFIG);
-  let globalDateRange;
-
-  if (globalDefault) {
-    if (typeof globalDefault === 'string') {
-      globalDateRange = getDateRange(globalDefault, locale);
-    } else if (typeof globalDefault === 'object') {
-      globalDateRange = {
-        ...globalDefault,
-        startDate: parseISO(globalDefault.startDate),
-        endDate: parseISO(globalDefault.endDate),
-      };
-    }
-  }
-
-  function saveDateRange(dateRange) {
+  const saveDateRange = async value => {
     if (websiteId) {
-      setDateRange(websiteId, dateRange);
-    } else {
-      setItem(DATE_RANGE_CONFIG, dateRange);
-      forceUpdate();
-    }
-  }
+      let dateRange = value;
 
-  return [websiteDateRange || globalDateRange || defaultDateRange, saveDateRange];
+      if (typeof value === 'string') {
+        if (value === 'all') {
+          const result = await get(`/websites/${websiteId}/daterange`);
+          const { mindate, maxdate } = result;
+
+          const startDate = new Date(mindate);
+          const endDate = new Date(maxdate);
+
+          dateRange = {
+            startDate,
+            endDate,
+            unit: getMinimumUnit(startDate, endDate),
+            value,
+          };
+        } else {
+          dateRange = parseDateRange(value, locale);
+        }
+      }
+
+      setWebsiteDateRange(websiteId, dateRange);
+    } else {
+      setItem(DATE_RANGE_CONFIG, value);
+      setDateRange(value);
+    }
+  };
+
+  return [dateRange, saveDateRange];
 }
+
+export default useDateRange;

@@ -1,19 +1,12 @@
 .footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--font-size-small);
-  text-align: center;
-  margin: 30px 0;
+  flex-direction: row;
+  justify-content: flex-end;
+  font-size: var(--font-size-sm);
+  line-height: 30px;
+  margin: 40px 0;
 }
 
-.version {
-  text-align: right;
-  padding-right: 10px;
-}
-
-@media only screen and (max-width: 768px) {
-  .footer .version {
-    text-align: center;
-  }
+.footer a {
+  color: var(--font-color100);
 }

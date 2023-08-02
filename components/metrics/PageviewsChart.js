@@ -1,94 +1,43 @@
-import React from 'react';
-import { useIntl } from 'react-intl';
-import { colord } from 'colord';
-import CheckVisible from 'components/helpers/CheckVisible';
+import { useMemo } from 'react';
 import BarChart from './BarChart';
-import useTheme from 'hooks/useTheme';
-import { THEME_COLORS, DEFAULT_ANIMATION_DURATION } from 'lib/constants';
+import { useLocale, useTheme, useMessages } from 'hooks';
+import { renderDateLabels, renderStatusTooltipPopup } from 'lib/charts';
 
-export default function PageviewsChart({
-  websiteId,
-  data,
-  unit,
-  records,
-  className,
-  loading,
-  animationDuration = DEFAULT_ANIMATION_DURATION,
-  ...props
-}) {
-  const intl = useIntl();
-  const [theme] = useTheme();
-  const primaryColor = colord(THEME_COLORS[theme].primary);
-  const colors = {
-    views: {
-      background: primaryColor.alpha(0.4).toRgbString(),
-      border: primaryColor.alpha(0.5).toRgbString(),
-    },
-    visitors: {
-      background: primaryColor.alpha(0.6).toRgbString(),
-      border: primaryColor.alpha(0.7).toRgbString(),
-    },
-  };
+export function PageviewsChart({ websiteId, data, unit, loading, ...props }) {
+  const { formatMessage, labels } = useMessages();
+  const { colors } = useTheme();
+  const { locale } = useLocale();
 
-  const handleUpdate = chart => {
-    const {
-      data: { datasets },
-    } = chart;
+  const datasets = useMemo(() => {
+    if (!data) return [];
 
-    datasets[0].data = data.sessions;
-    datasets[0].label = intl.formatMessage({
-      id: 'metrics.unique-visitors',
-      defaultMessage: 'Unique visitors',
-    });
-    datasets[1].data = data.pageviews;
-    datasets[1].label = intl.formatMessage({
-      id: 'metrics.page-views',
-      defaultMessage: 'Page views',
-    });
-  };
-
-  if (!data) {
-    return null;
-  }
+    return [
+      {
+        label: formatMessage(labels.uniqueVisitors),
+        data: data.sessions,
+        borderWidth: 1,
+        ...colors.chart.visitors,
+      },
+      {
+        label: formatMessage(labels.pageViews),
+        data: data.pageviews,
+        borderWidth: 1,
+        ...colors.chart.views,
+      },
+    ];
+  }, [data, locale, colors]);
 
   return (
-    <CheckVisible>
-      {visible => (
-        <BarChart
-          {...props}
-          className={className}
-          chartId={websiteId}
-          datasets={[
-            {
-              label: intl.formatMessage({
-                id: 'metrics.unique-visitors',
-                defaultMessage: 'Unique visitors',
-              }),
-              data: data.sessions,
-              lineTension: 0,
-              backgroundColor: colors.visitors.background,
-              borderColor: colors.visitors.border,
-              borderWidth: 1,
-            },
-            {
-              label: intl.formatMessage({
-                id: 'metrics.page-views',
-                defaultMessage: 'Page views',
-              }),
-              data: data.pageviews,
-              lineTension: 0,
-              backgroundColor: colors.views.background,
-              borderColor: colors.views.border,
-              borderWidth: 1,
-            },
-          ]}
-          unit={unit}
-          records={records}
-          animationDuration={visible ? animationDuration : 0}
-          onUpdate={handleUpdate}
-          loading={loading}
-        />
-      )}
-    </CheckVisible>
+    <BarChart
+      {...props}
+      key={websiteId}
+      datasets={datasets}
+      unit={unit}
+      loading={loading}
+      renderXLabel={renderDateLabels(unit, locale)}
+      renderTooltipPopup={renderStatusTooltipPopup(unit, locale)}
+    />
   );
 }
+
+export default PageviewsChart;

@@ -1,10 +1,9 @@
-import React from 'react';
 import { useRouter } from 'next/router';
-import Layout from 'components/layout/Layout';
-import WebsiteDetails from 'components/pages/WebsiteDetails';
+import ShareLayout from 'components/layout/ShareLayout';
+import WebsiteDetailsPage from 'components/pages/websites/WebsiteDetailsPage';
 import useShareToken from 'hooks/useShareToken';
 
-export default function SharePage() {
+export default function () {
   const router = useRouter();
   const { id } = router.query;
   const shareId = id?.[0];
@@ -15,8 +14,8 @@ export default function SharePage() {
   }
 
   return (
-    <Layout>
-      <WebsiteDetails websiteId={shareToken.id} />
-    </Layout>
+    <ShareLayout>
+      <WebsiteDetailsPage websiteId={shareToken.websiteId} />
+    </ShareLayout>
   );
 }

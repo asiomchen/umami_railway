@@ -1,10 +1,15 @@
 .chart {
   position: relative;
   height: 400px;
+  overflow: hidden;
 }
 
-@media only screen and (max-width: 992px) {
-  .chart {
-    height: 200px;
-  }
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tooltip .value {
+  text-transform: lowercase;
 }
