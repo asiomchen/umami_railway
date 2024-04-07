@@ -2,9 +2,9 @@
 const fs = require('fs');
 const path = require('path');
 const prettier = require('prettier');
-const messages = require('../build/messages.json');
+const messages = require('../build/extracted-messages.json');
 
-const dest = path.resolve(__dirname, '../lang');
+const dest = path.resolve(__dirname, '../src/lang');
 const files = fs.readdirSync(dest);
 const keys = Object.keys(messages).sort();
 
@@ -14,7 +14,7 @@ with the existing files under `lang`. Any newly added
 keys will be printed to the console.
  */
 files.forEach(file => {
-  const lang = require(`../lang/${file}`);
+  const lang = require(`../src/lang/${file}`);
 
   console.log(`Merging ${file}`);
 
