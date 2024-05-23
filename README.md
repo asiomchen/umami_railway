@@ -1,5 +1,4 @@
 # umami
-Anton's fork - migrated to v2
 Umami is a simple, fast, privacy-focused alternative to Google Analytics.
 
 ## Getting started
